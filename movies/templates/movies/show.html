@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<div class="p-3">
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-md-6 mx-auto mb-3">
+        <h2>{{ template_data.movie.name }}</h2>
+        <hr />
+        <p><b>Description:</b> {{ template_data.movie.description }}</p>
+        <p><b>Price:</b> ${{template_data.movie.price }}</p>
+        <p class="card-text">
+          <form method="post" action="{% url 'cart.add' id=template_data.movie.id %}">
+            <div class="row">
+              {% csrf_token %}
+              <div class="col-auto">
+                <div class="input-group col-auto">
+                  <div class="input-group-text">Quantity</div>
+                  <input type="number" min="1" max="10" class="form-control quantity-input" name="quantity" value="1">
+                </div>
+              </div>
+                 <div class="col-auto">
+                     <button class="btn bg-dark text-white" type="submit">Add to cart</button>
+                 </div>
+            </div>
+          </form>
+        </p>
+<!--This section iterates through the reviews and displays the review date and comment,
+ as well as the username of the user who created the review.-->
+        <h2>Reviews</h2>
+        <hr />
+        <ul class="list-group">
+          {% for review in template_data.reviews %}
+          <li class="list-group-item pb-3 pt-3">
+            <h5 class="card-title">
+              Review by {{ review.user.username }}
+            </h5>
+            <h6 class="card-subtitle mb-2 text-muted">
+              {{ review.date }}
+            </h6>
+            <p class="card-text">{{ review.comment }}</p>
+<!-- We added a code snippet for each review that is displayed.
+That code checks whether a user is authenticated and whether the user is the one who wrote a specific review.
+If both of these conditions are true, it will render the Edit button, which links to the movies.edit_review URL.-->
+            {% if user.is_authenticated and user == review.user %}
+            <a class="btn btn-primary"
+              href="{% url 'movies.edit_review' id=template_data.movie.id review_id=review.id %}">Edit
+            </a>
+              <a class="btn btn-danger"
+              href="{% url 'movies.delete_review' id=template_data.movie.id review_id=review.id %}">Delete
+            </a>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+
+        {% if user.is_authenticated %}
+          <!--
+          We use the if user.is_authenticated DTL conditional statement
+          that checks whether the user is authenticated (logged in).
+          If the user is authenticated, the block of HTML code within the if statement will be rendered and displayed.
+           -->
+        <div class="container mt-4">
+          <div class="row justify-content-center">
+            <div class="col-12">
+              <div class="card shadow p-3 mb-4 rounded">
+                <div class="card-body">
+                  <b class="text-start">Create a review
+</b><br /><br />
+                  <form method="POST" action="{% url 'movies.create_review' id=template_data.movie.id %}">
+                       <!--
+                      The form is linked to the movies.create_review URL, and it also passes the movie ID to that URL.
+                      The movie ID will be used to link the current comment with the movie that it represents.
+                      We create an HTML form with the POST method and the csrf_token token.
+                      This form contains a single input named comment.
+                      This input stores the review text.
+                    -->
+                    {% csrf_token %}
+                    <p>
+                      <label for="comment">Comment:</label>
+                      <textarea name="comment" required  class="form-control"  id="comment"></textarea>
+                    </p>
+                    <div class="text-center">
+                      <button type="submit"
+                        class="btn bg-dark text-white">
+                        Add Review
+                      </button>
+                        <!--The form also contains a submitted button.-->
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-md-6 mx-auto mb-3 text-center">
+        <!-- <img src="{% static 'img/about.jpg' %}" class="rounded" />-->
+        <img src="{{ template_data.movie.image.url }}" class="rounded img-card-400" />
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
